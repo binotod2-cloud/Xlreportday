@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate Laporan Penjualan - Koperasi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+        .file-section {
+            margin-bottom: 25px;
+        }
+        .file-upload {
+            border: 2px dashed #4CAF50;
+            padding: 25px;
+            text-align: center;
+            border-radius: 5px;
+            cursor: pointer;
+            background: #f8fff8;
+            margin-bottom: 10px;
+        }
+        .file-upload:hover {
+            background: #f0fff0;
+        }
+        .input-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .input-group {
+            flex: 1;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+            font-size: 14px;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+            text-align: right;
+            font-family: 'Courier New', monospace;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #0b7dda;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            color: #666;
+            margin: 20px 0;
+        }
+        .preview {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-size: 14px;
+            display: none;
+        }
+        .info {
+            background: #e3f2fd;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 15px;
+            font-size: 13px;
+            color: #1565c0;
+        }
+        .output-preview {
+            background: #fff8e1;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            font-size: 12px;
+            border-left: 4px solid #ffb300;
+        }
+        .example {
+            font-size: 11px;
+            color: #666;
+            margin-top: 3px;
+        }
+        .format-info {
+            display: inline-block;
+            background: #4CAF50;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            margin-left: 5px;
+        }
+        .file-info {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #666;
+        }
+        .file-info strong {
+            color: #2196F3;
+        }
+        .github-info {
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+        }
+        .github-info a {
+            color: #2196F3;
+            text-decoration: none;
+        }
+        .github-info a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Generate Laporan Penjualan</h1>
+        
+        <div class="file-section">
+            <div class="file-upload" onclick="document.getElementById('fileInput').click()">
+                📁 Upload File Excel Mentah
+                <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                    Drag & drop atau klik untuk upload
+                </div>
+            </div>
+            <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none">
+            
+            <div id="filePreview" class="preview">
+                File: <strong id="fileName">-</strong><br>
+                Jumlah data: <span id="dataCount">0</span> transaksi<br>
+                <div id="dateInfo" class="file-info"></div>
+            </div>
+        </div>
+        
+        <div class="info">
+            ⓘ Hasil akan seperti file "hasil penjualan.xlsx" dengan format rapih
+        </div>
+        
+        <div class="input-row">
+            <div class="input-group">
+                <label for="omset">
+                    Omset 
+                    <span class="format-info">Auto Format</span>
+                </label>
+                <input type="text" id="omset" placeholder="640.000" value="640.000">
+                <div class="example">Tulis angka, otomatis diformat dengan titik (640.000)</div>
+            </div>
+            <div class="input-group">
+                <label for="profit">
+                    Profit
+                    <span class="format-info">Auto Format</span>
+                </label>
+                <input type="text" id="profit" placeholder="68.725" value="68.725">
+                <div class="example">Tulis angka, otomatis diformat dengan titik (68.725)</div>
+            </div>
+        </div>
+        
+        <div class="output-preview">
+            <strong>Preview Output:</strong><br>
+            Nama File: <span id="previewFileName">jualkoperasi_01_01_26.xlsx</span><br>
+            Profit: <span id="previewProfit">Rp68.725</span><br>
+            Omset: <span id="previewOmset">Rp640.000</span>
+        </div>
+        
+        <div class="loading" id="loading">
+            ⏳ Membuat laporan... Harap tunggu
+        </div>
+        
+        <button onclick="generateLaporan()">GENERATE LAPORAN EXCEL</button>
+    </div>
+    
+    <div class="github-info">
+        <a href="https://github.com/username/repository-name" target="_blank">⭐ GitHub Repository</a>
+    </div>
+
+    <!-- Include SheetJS dari CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <script>
+    // Variabel global
+    let uploadedFile = null;
+    let fileData = [];
+    let extractedDate = '01-01-2026'; // Default date
+    
+    // Format angka dengan titik setiap 3 digit
+    function formatAngka(input) {
+        // Hapus semua karakter non-digit
+        let value = input.value.replace(/[^\d]/g, '');
+        
+        // Format dengan titik
+        if (value.length > 3) {
+            value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+        
+        input.value = value;
+        
+        // Update preview
+        updatePreview();
+    }
+    
+    // Update preview di bawah form
+    function updatePreview() {
+        const omset = document.getElementById('omset').value.replace(/\./g, '');
+        const profit = document.getElementById('profit').value.replace(/\./g, '');
+        
+        document.getElementById('previewProfit').textContent = `Rp${formatNumberDisplay(profit)}`;
+        document.getElementById('previewOmset').textContent = `Rp${formatNumberDisplay(omset)}`;
+        
+        // Update file name preview
+        const fileName = generateFileName(extractedDate);
+        document.getElementById('previewFileName').textContent = fileName;
+    }
+    
+    // Format number untuk display (dengan titik)
+    function formatNumberDisplay(num) {
+        if (!num || num === '0') return '0';
+        num = num.toString().replace(/\./g, '');
+        return num.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
+    
+    // Generate file name berdasarkan tanggal
+    function generateFileName(dateStr) {
+        // Parse tanggal dari berbagai format
+        let dateObj;
+        
+        if (dateStr.includes('-')) {
+            // Format: DD-MM-YYYY
+            const parts = dateStr.split('-');
+            dateObj = new Date(parts[2], parts[1] - 1, parts[0]);
+        } else if (dateStr.includes('/')) {
+            // Format: DD/MM/YYYY
+            const parts = dateStr.split('/');
+            dateObj = new Date(parts[2], parts[1] - 1, parts[0]);
+        } else {
+            // Default ke tanggal hari ini
+            dateObj = new Date();
+        }
+        
+        // Format: DD_MM_YY
+        const day = String(dateObj.getDate()).padStart(2, '0');
+        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const year = String(dateObj.getFullYear()).slice(-2);
+        
+        return `jualkoperasi_${day}_${month}_${year}.xlsx`;
+    }
+    
+    // Ekstrak tanggal dari data Excel
+    function extractDateFromData(data) {
+        if (!data || data.length < 2) {
+            return '01-01-2026'; // Default
+        }
+        
+        const headers = data[0];
+        const firstRow = data[1];
+        
+        // Cari kolom tanggal
+        const tanggalIndex = headers.findIndex(h => 
+            h && h.toString().toLowerCase().includes('tanggal')
+        );
+        
+        if (tanggalIndex !== -1 && firstRow[tanggalIndex]) {
+            return firstRow[tanggalIndex];
+        }
+        
+        return '01-01-2026'; // Default
+    }
+    
+    // Format tanggal untuk display
+    function formatDateForDisplay(dateStr) {
+        if (!dateStr) return '01-01-2026';
+        
+        // Coba parse berbagai format
+        if (dateStr.includes('-')) {
+            return dateStr;
+        } else if (dateStr.includes('/')) {
+            // Ubah dari DD/MM/YYYY ke DD-MM-YYYY
+            return dateStr.replace(/\//g, '-');
+        }
+        
+        return dateStr;
+    }
+    
+    // Hitung ringkasan produk dari data
+    function calculateProductSummary(dataRows) {
+        const productMap = {};
+        
+        dataRows.forEach(row => {
+            // Asumsi: kolom 5 = Nama Produk, kolom 6 = Jumlah Produk
+            const productName = row[5];
+            const quantity = parseFloat(row[6]) || 0;
+            
+            if (productName && productName.trim() !== '') {
+                if (!productMap[productName]) {
+                    productMap[productName] = 0;
+                }
+                productMap[productName] += quantity;
+            }
+        });
+        
+        // Konversi ke array dan urutkan jumlah terbanyak
+        return Object.entries(productMap)
+            .map(([name, qty]) => ({ name, qty }))
+            .sort((a, b) => b.qty - a.qty);
+    }
+    
+    // Handle file upload
+    document.getElementById('fileInput').addEventListener('change', async function(e) {
+        if (e.target.files.length > 0) {
+            uploadedFile = e.target.files[0];
+            document.getElementById('fileName').textContent = uploadedFile.name;
+            document.getElementById('filePreview').style.display = 'block';
+            
+            // Baca file
+            await readExcelFile(uploadedFile);
+        }
+    });
+    
+    // Drag & drop
+    const dropArea = document.querySelector('.file-upload');
+    dropArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropArea.style.backgroundColor = '#f0fff0';
+    });
+    
+    dropArea.addEventListener('dragleave', () => {
+        dropArea.style.backgroundColor = '#f8fff8';
+    });
+    
+    dropArea.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        dropArea.style.backgroundColor = '#f8fff8';
+        if (e.dataTransfer.files.length > 0) {
+            uploadedFile = e.dataTransfer.files[0];
+            document.getElementById('fileName').textContent = uploadedFile.name;
+            document.getElementById('filePreview').style.display = 'block';
+            
+            // Trigger file input
+            document.getElementById('fileInput').files = e.dataTransfer.files;
+            await readExcelFile(uploadedFile);
+        }
+    });
+    
+    // Baca file Excel
+    async function readExcelFile(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    // Ambil sheet pertama
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    
+                    // Konversi ke JSON array
+                    fileData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    
+                    // Ekstrak tanggal dari data
+                    extractedDate = extractDateFromData(fileData);
+                    
+                    // Update info tanggal
+                    document.getElementById('dateInfo').innerHTML = 
+                        `Tanggal transaksi: <strong>${formatDateForDisplay(extractedDate)}</strong><br>` +
+                        `Nama file output: <strong>${generateFileName(extractedDate)}</strong>`;
+                    
+                    document.getElementById('dataCount').textContent = fileData.length - 1;
+                    
+                    // Update preview
+                    updatePreview();
+                    
+                    console.log('File berhasil dibaca:', fileData.length, 'baris, tanggal:', extractedDate);
+                    resolve(fileData);
+                } catch (error) {
+                    reject(error);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+    }
+    
+    // Fungsi utama: generate laporan
+    async function generateLaporan() {
+        // Ambil nilai dan bersihkan dari titik
+        const omsetStr = document.getElementById('omset').value;
+        const profitStr = document.getElementById('profit').value;
+        
+        const omset = parseFloat(omsetStr.replace(/\./g, '')) || 0;
+        const profit = parseFloat(profitStr.replace(/\./g, '')) || 0;
+        
+        if (!omset || !profit) {
+            alert('Harap isi omset dan profit!');
+            return;
+        }
+        
+        if (omset < profit) {
+            alert('Profit tidak boleh lebih besar dari Omset!');
+            return;
+        }
+        
+        // Tampilkan loading
+        document.getElementById('loading').style.display = 'block';
+        
+        try {
+            // Buat workbook baru
+            const wb = XLSX.utils.book_new();
+            
+            // HEADER sesuai contoh (tanpa kolom double)
+            const headers = ["No", "No. Struk", "Tanggal", "Nama Outlet", "Nama Pelanggan", 
+                           "Nama Produk", "Jumlah Produk", "Harga Per Produk", "diskon produk", 
+                           "Subtotal", "Status", "Metode Pembayaran"];
+            
+            // Data yang akan diisi ke Excel
+            let excelData = [];
+            
+            // 1. Tambahkan header
+            excelData.push(headers);
+            
+            // 2. Proses data dari file upload atau gunakan data contoh
+            let dataRows = [];
+            
+            if (fileData && fileData.length > 0) {
+                // Gunakan data dari file yang diupload
+                const fileHeaders = fileData[0];
+                const rawRows = fileData.slice(1);
+                
+                // Map kolom dari file upload ke format yang diinginkan
+                const findColIndex = (colName) => {
+                    return fileHeaders.findIndex(h => 
+                        h && h.toString().toLowerCase().includes(colName.toLowerCase())
+                    );
+                };
+                
+                const colMap = {
+                    no: findColIndex('no'),
+                    struk: findColIndex('struk') !== -1 ? findColIndex('struk') : findColIndex('no. struk'),
+                    tanggal: findColIndex('tanggal'),
+                    outlet: findColIndex('outlet') !== -1 ? findColIndex('outlet') : findColIndex('nama outlet'),
+                    pelanggan: findColIndex('pelanggan') !== -1 ? findColIndex('pelanggan') : findColIndex('nama pelanggan'),
+                    produk: findColIndex('produk') !== -1 ? findColIndex('produk') : findColIndex('nama produk'),
+                    jumlah: findColIndex('jumlah') !== -1 ? findColIndex('jumlah') : findColIndex('jumlah produk'),
+                    harga: findColIndex('harga') !== -1 ? findColIndex('harga') : findColIndex('harga per produk'),
+                    diskon: findColIndex('diskon produk') !== -1 ? findColIndex('diskon produk') : findColIndex('diskon'),
+                    subtotal: findColIndex('subtotal'),
+                    status: findColIndex('status'),
+                    metode: findColIndex('metode') !== -1 ? findColIndex('metode') : findColIndex('metode pembayaran')
+                };
+                
+                // Proses setiap baris data
+                rawRows.forEach((row, index) => {
+                    if (row && row.length > 0) {
+                        const processedRow = [
+                            row[colMap.no] || (index + 1),
+                            row[colMap.struk] || '',
+                            row[colMap.tanggal] || extractedDate,
+                            row[colMap.outlet] || 'Gerai Sembako MP',
+                            row[colMap.pelanggan] || '',
+                            row[colMap.produk] || '',
+                            row[colMap.jumlah] || 0,
+                            row[colMap.harga] || 0,
+                            row[colMap.diskon] || 0,
+                            row[colMap.subtotal] || 0,
+                            row[colMap.status] || 'LUNAS',
+                            row[colMap.metode] || 'Tunai'
+                        ];
+                        
+                        dataRows.push(processedRow);
+                        excelData.push(processedRow);
+                    }
+                });
+            } else {
+                // Gunakan data contoh (17 baris seperti contoh Anda)
+                const contohData = [
+                    [1.0, "WNJ12252439418", extractedDate, "Gerai Sembako MP", "Anis", "Aquviva 700ml botol", 2.0, 2500.0, 1000.0, 5000.0, "LUNAS", "Tunai"],
+                    [2.0, "WUK12252494018", extractedDate, "Gerai Sembako MP", "Anis", "Hutang", 1.0, 9000.0, 0.0, 9000.0, "LUNAS", "Tunai"],
+                    [3.0, "LRP01260157914", extractedDate, "Gerai Sembako MP", "Maryono", "Gas lpg 3kg", 5.0, 19000.0, 0.0, 95000.0, "LUNAS", "Tunai"],
+                    [4.0, "PDK01260157614", extractedDate, "Gerai Sembako MP", "RT Asep", "Le Minerale 600ml", 1.0, 3000.0, 0.0, 3000.0, "LUNAS", "Tunai"],
+                    [5.0, "PDK01260157614", extractedDate, "Gerai Sembako MP", "RT Asep", "Gooday botol", 1.0, 6000.0, 0.0, 6000.0, "LUNAS", "Tunai"],
+                    [6.0, "ESF01260130614", extractedDate, "Gerai Sembako MP", "Aan", "Aquviva 700ml botol", 2.0, 2500.0, 1000.0, 5000.0, "LUNAS", "Tunai"],
+                    [7.0, "RJO01260157014", extractedDate, "Gerai Sembako MP", "Suwarno", "Terigu", 3.0, 7500.0, 0.0, 22500.0, "LUNAS", "Tunai"],
+                    [8.0, "RJO01260157014", extractedDate, "Gerai Sembako MP", "Suwarno", "Minyak kita 1 liter", 2.0, 16500.0, 0.0, 33000.0, "LUNAS", "Tunai"],
+                    [9.0, "RMJ01260152214", extractedDate, "Gerai Sembako MP", "Bu RT Asep(Mimin 82)", "Laundry superzet expro 1 ltr", 1.0, 12000.0, 0.0, 12000.0, "LUNAS", "Tunai"],
+                    [10.0, "LCM01260191714", extractedDate, "Gerai Sembako MP", "Maryono", "Minyak kita 1 liter", 2.0, 16500.0, 0.0, 33000.0, "LUNAS", "Tunai"],
+                    [11.0, "FAU01260132414", extractedDate, "Gerai Sembako MP", "Ali", "Nipis madu", 1.0, 4000.0, 0.0, 4000.0, "LUNAS", "Tunai"],
+                    [12.0, "EVG01260187914", extractedDate, "Gerai Sembako MP", "RT arwan", "Gas lpg 3kg", 5.0, 19000.0, 0.0, 95000.0, "LUNAS", "Tunai"],
+                    [13.0, "LVL01260142514", extractedDate, "Gerai Sembako MP", "Ano BPD", "Aquviva 700ml botol", 12.0, 2000.0, 12000.0, 24000.0, "LUNAS", "Tunai"],
+                    [14.0, "OWJ01260144314", extractedDate, "Gerai Sembako MP", "H. Sanen", "Beras SPHP", 4.0, 60000.0, 0.0, 240000.0, "LUNAS", "Tunai"],
+                    [15.0, "IZE01260180814", extractedDate, "Gerai Sembako MP", "H. Sanen", "Minyak kita 1 liter", 2.0, 16500.0, 0.0, 33000.0, "LUNAS", "Tunai"],
+                    [16.0, "IIR01260122214", extractedDate, "Gerai Sembako MP", "Anis", "Aquviva 700ml botol", 2.0, 2000.0, 2000.0, 4000.0, "LUNAS", "Tunai"],
+                    [17.0, "YPA01260199014", extractedDate, "Gerai Sembako MP", "Bu RT Asep(Mimin 82)", "Minyak kita 1 liter", 1.0, 16500.0, 0.0, 16500.0, "LUNAS", "Tunai"]
+                ];
+                
+                contohData.forEach(row => {
+                    dataRows.push(row);
+                    excelData.push(row);
+                });
+            }
+            
+            // 3. Tambahkan baris kosong
+            excelData.push(Array(12).fill(''));
+            
+            // 4. Tambahkan Profit dan Omset (format Rp68.725 dan Rp640.000)
+            excelData.push(['Profit', `Rp${formatNumberDisplay(profit)}`, '', '', '', '', '', '', '', '', '', '']);
+            excelData.push(['Omset', `Rp${formatNumberDisplay(omset)}`, '', '', '', '', '', '', '', '', '', '']);
+            
+            // 5. Tambahkan 2 baris kosong
+            excelData.push(Array(12).fill(''));
+            excelData.push(Array(12).fill(''));
+            
+            // 6. Tambahkan ringkasan produk (HANYA ANGKA, tanpa pcs)
+            const productSummary = calculateProductSummary(dataRows);
+            
+            // Header ringkasan produk
+            excelData.push(['Ringkasan Produk Terjual:', '', '', '', '', '', '', '', '', '', '', '']);
+            excelData.push(['Nama Produk', 'Jumlah', '', '', '', '', '', '', '', '', '', '']);
+            
+            // Data ringkasan produk (hanya angka, tanpa satuan)
+            productSummary.slice(0, 10).forEach(product => {
+                excelData.push([product.name, product.qty, '', '', '', '', '', '', '', '', '', '']);
+            });
+            
+            // Buat worksheet
+            const ws = XLSX.utils.aoa_to_sheet(excelData);
+            
+            // Tambahkan ke workbook
+            XLSX.utils.book_append_sheet(wb, ws, "Laporan");
+            
+            // GENERATE FILE NAME berdasarkan tanggal
+            const fileName = generateFileName(extractedDate);
+            
+            // DOWNLOAD FILE
+            XLSX.writeFile(wb, fileName);
+            
+            // Sembunyikan loading
+            document.getElementById('loading').style.display = 'none';
+            
+            alert(`✅ Laporan berhasil dibuat!\n\nFile: ${fileName}\n\nFormat sesuai permintaan:\n1. Data transaksi rapih (${dataRows.length} baris)\n2. Tanggal: ${formatDateForDisplay(extractedDate)}\n3. Profit: Rp${formatNumberDisplay(profit)}\n4. Omset: Rp${formatNumberDisplay(omset)}\n5. Ringkasan ${productSummary.length} produk terjual`);
+            
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan: ' + error.message);
+            document.getElementById('loading').style.display = 'none';
+        }
+    }
+    
+    // Event listeners untuk format otomatis
+    document.getElementById('omset').addEventListener('input', function() {
+        formatAngka(this);
+    });
+    
+    document.getElementById('profit').addEventListener('input', function() {
+        formatAngka(this);
+    });
+    
+    // Enter key untuk submit
+    document.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            generateLaporan();
+        }
+    });
+    
+    // Initialize preview
+    updatePreview();
+    
+    // Tambahkan link GitHub sesuai repository Anda (ganti dengan link sebenarnya)
+    document.addEventListener('DOMContentLoaded', function() {
+        const githubLink = document.querySelector('.github-info a');
+        // Ganti dengan URL repository GitHub Anda
+        githubLink.href = 'https://github.com/username/repository-name';
+    });
+    </script>
+</body>
+</html>
